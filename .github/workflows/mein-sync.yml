@@ -12,8 +12,18 @@ jobs:
       - name: Code herunterladen
         uses: actions/checkout@v4
       
-      - name: Programm bauen (Docker)
-        run: docker build -t mein-sync-tool .
-        
+      - name: Go Umgebung laden
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Tresor-Daten in Config umwandeln
+        run: |
+          cat << 'EOF' > scaleconnect.yaml
+          sync_task:
+            from: "mytanita ${{ secrets.TANITA_EMAIL }} ${{ secrets.TANITA_PASSWORD }}"
+            to: "garmin ${{ secrets.GARMIN_EMAIL }} ${{ secrets.GARMIN_PASSWORD }}"
+          EOF
+          
       - name: Synchronisation ausfuehren
-        run: docker run --rm -e GARMIN_EMAIL="${{ secrets.GARMIN_EMAIL }}" -e GARMIN_PASSWORD="${{ secrets.GARMIN_PASSWORD }}" -e TANITA_EMAIL="${{ secrets.TANITA_EMAIL }}" -e TANITA_PASSWORD="${{ secrets.TANITA_PASSWORD }}" mein-sync-tool
+        run: go run main.go
